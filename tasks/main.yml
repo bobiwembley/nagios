@@ -1,0 +1,81 @@
+---
+# tasks file for nagios
+#
+- name: install nagios package (debian)
+  apt:
+    name: '{{ item }}'
+    state: present
+  with_items:
+    - wget
+    - curl 
+    - build-essential
+    - unzip 
+    - openssl 
+    - libssl-dev
+    - apache2
+    - php 
+    - libapache2-mod-php
+    - php-gd
+    - libgd-dev
+
+- name: get  nagios  version 
+  get_url:
+    url: https://assets.nagios.com/downloads/nagioscore/releases/nagios-{{ version }}.tar.gz
+    dest: '{{ dest_folder }}'
+    mode: '0640'
+
+- name: unzip the version
+  unarchive: 
+    src: '{{ dest_folder }}/nagios-{{ version }}.tar.gz'
+    dest: '{{ dest_folder }}'
+    remote_src: yes
+
+- name: compil nagios version {{ version }}
+  command: "./configure --with-httpd-conf=/etc/apache2/sites-enabled"
+  args: 
+    chdir: "{{dest_folder}}/nagios-{{ version }}"
+
+- name: add user and group for nagios
+  command: "make install-groups-users"
+  args: 
+    chdir: "{{dest_folder}}/nagios-{{ version }}"
+
+- name: add www-data to nagios group
+  user: 
+    name: www-data
+    uid: 33
+    group: nagios
+
+
+- name: make nagios
+  command: "make all"
+  args:
+    chdir: "{{dest_folder}}/nagios-{{ version }}"
+
+- name: install  nagios
+  command: "make install"
+  args:
+    chdir: "{{dest_folder}}/nagios-{{ version }}"
+
+- name: daemon nagios
+  command: " make install-daemoninit"
+  args:
+    chdir: "{{dest_folder}}/nagios-{{ version }}"
+
+- name: install commandmode  nagios
+  command: " make install-commandmode"
+  args:
+    chdir: "{{dest_folder}}/nagios-{{ version }}"
+    
+- name: install config nagios 
+  command: " make install-config"
+  args:
+    chdir: "{{dest_folder}}/nagios-{{ version }}"
+
+- name: install webconf
+  command: "make install-webconf"
+  args:
+    chdir: "{{dest_folder}}/nagios-{{ version }}"
+
+- name: active a2mod
+  command:  a2enmod rewrite cgi

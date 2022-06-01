@@ -1,0 +1,5 @@
+---
+# defaults file for nagios
+
+version: 4.4.7
+dest_folder: /tmp
