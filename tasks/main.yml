@@ -17,6 +17,7 @@
     - libapache2-mod-php
     - php-gd
     - libgd-dev
+    - python3-passlib
 
 - name: get  nagios  version 
   get_url:
@@ -79,3 +80,12 @@
 
 - name: active a2mod
   command:  a2enmod rewrite cgi
+
+- name: add httpaswd to nagios
+  htpasswd: 
+    path: /usr/local/nagios/etc/htpasswd.users
+    name: nagios
+    password: '{{ password }}'
+    owner: nagios
+    group: nagios
+    mode: '0640'
